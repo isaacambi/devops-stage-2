@@ -121,7 +121,7 @@ This section sets up the full stack application in production, configures domain
 - Get a domain e.g mydomain.com, configure the following subdomain as A records pointing to your public ip.
 - **mydomain.com, db.mydomain.com, proxy.mydomain.com**
 - replace the subdomain in nginx/nginx.conf with your subdomain in all required lines.
-- This example used **drintech.cloudopsdomain.online, db.drintech.cloudopsdomain.online, proxy.drintech.cloudopsdomain.online**
+- This example used **hello.cloudopsdomain.online, db.hello.cloudopsdomain.online, proxy.hello.cloudopsdomain.online**
 
 ## the initial setup of application 
 - clone the application
@@ -145,9 +145,9 @@ This section sets up the full stack application in production, configures domain
   you will be prompted to change the password after login
 
 - generate ssl certificates for your subdomains in the following order below using **lets encrypt**. We will use the sample domain.
-  - **drintech.cloudopsdomain.online**
-  - **db.drintech.cloudopsdomain.online**
-  - **proxy.drintech.cloudopsdomain.online**
+  - **hello.cloudopsdomain.online**
+  - **db.hello.cloudopsdomain.online**
+  - **proxy.hello.cloudopsdomain.online**
 - stop the applications
   ```
   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
@@ -159,14 +159,17 @@ This section sets up the full stack application in production, configures domain
   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
   ```
 - **Verify the services are running and all path are accessible**:
-   - **FastAPI Backend**: drintech.cloudopsdomain.online/api
-   - **FastAPI Backend Docs**: drintech.cloudopsdomain.online/docs
-   - **FastAPI Backend Redoc**: drintech.cloudopsdomain.online/redoc
-   - **Node.js Frontend**: drintech.cloudopsdomain.online
-   - **Adminer**: db.drintech.cloudopsdomain.online
-   - **Nginx Proxy Manager**: proxy.drintech.cloudopsdomain.online
+   - **FastAPI Backend**: hello.cloudopsdomain.online/api
+   - **FastAPI Backend Docs**: hello.cloudopsdomain.online/docs
+   - **FastAPI Backend Redoc**: hello.cloudopsdomain.online/redoc
+   - **Node.js Frontend**: hello.cloudopsdomain.online
+   - **Adminer**: db.hello.cloudopsdomain.online
+   - **Nginx Proxy Manager**: proxy.hello.cloudopsdomain.online
 
 - test http to https redirection and www to non-www redirection is working
+  - www.hello.cloudopsdomain.online
+  - https://www.hello.cloudopsdomain.online
+  - http://www.hello.cloudopsdomain.online
 
 
 
