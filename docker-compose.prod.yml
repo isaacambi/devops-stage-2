@@ -13,6 +13,11 @@ services:
       - letsencrypt:/etc/letsencrypt
       #- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf
     restart: always
+    depends_on:
+      - frontend
+      - backend
+      - db
+      - adminer
     networks:
       - frontend-network
       - backend-network

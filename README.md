@@ -26,8 +26,8 @@ This repository contains a full-stack application setup using Docker Compose. Th
 - **frontend**: Node.js application serving the frontend.
 - **db**: PostgreSQL database for storing application data.
 - **adminer**: Database management tool to interact with the PostgreSQL database.
-- **proxy**: Nginx Proxy Manager to handle SSL certificates and domain management.
-- **nginx**: Nginx web server to serve the frontend and reverse proxy requests to the backend.
+- **nginx_proxy**: Nginx Proxy Manager to handle SSL certificates and domain management both locally and in production
+
 
 ## How to set up locally
 
@@ -41,11 +41,11 @@ This repository contains a full-stack application setup using Docker Compose. Th
 2. **Build and start the services**:
 
    ```sh
-   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+   docker compose up -d
    ```
    for older version of docker compose, run:
    ```sh
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+   docker-compose up -d
    ```   
 
 3. **Verify the services are running and all path are accessible**:
@@ -58,7 +58,7 @@ This repository contains a full-stack application setup using Docker Compose. Th
    - **Nginx Proxy Manager**: [http://localhost:8090](http://localhost:8090) or [http://proxy.localhost](http://proxy.localhost)
 
 
-## Local Service Details (docker-compose.dev.yml)
+## Local Service Details (docker-compose.yml)
 
 ### Backend (FastAPI)
 
@@ -96,23 +96,16 @@ This repository contains a full-stack application setup using Docker Compose. Th
 - **Docker Container**: `nginx_proxy_manager`
 - **Port**: `8090`
 - **Volumes**:
-  - `./data`: Persistent data for the proxy manager.
-  - `./letsencrypt`: SSL certificates.
-
-### Nginx
-
-- **Docker Image**: `nginx:latest`
-- **Docker Container**: `nginx`
-- **Port**: `80`
-- **Volumes**:
-  - `./nginx/nginx.dev.conf`: Configuration file for Nginx.
-  - `./nginx/proxy_params.dev.conf`: Proxy parameters for Nginx.
+  - `data`: Persistent data for the proxy manager.
+  - `letsencrypt`: SSL certificates.
+  - `./nginx/nginx.dev.conf`: Config for proxy manager.
 - **Depends On**:
   - `frontend`
   - `backend`
   - `db`
   - `adminer`
-  - `proxy`
+
+
 
 ## How to set up in production with domain
 This section sets up the full stack application in production, configures domain name to access the application and secures it with ssl certificates.
@@ -131,7 +124,7 @@ This section sets up the full stack application in production, configures domain
    ```
 - run the project
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  docker-compose -f docker-compose.prod.yml up -d
   ```
 - access the NPM on your browser using your public-ip
   ```sh
@@ -144,20 +137,26 @@ This section sets up the full stack application in production, configures domain
   ```
   you will be prompted to change the password after login
 
-- generate ssl certificates for your subdomains in the following order below using **lets encrypt**. We will use the sample domain.
+- generate ssl certificates for your subdomains in the following **order below** using **lets encrypt**. We will use the sample domain.
   - **hello.cloudopsdomain.online**
   - **db.hello.cloudopsdomain.online**
   - **proxy.hello.cloudopsdomain.online**
 - stop the applications
   ```
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+  docker-compose -f docker-compose.prod.yml down
   ```
 ## Final setup
-- uncomment `#- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf` in the docker-compose.prod.yaml file. This maps nginx.prod.conf file on NPM.
-- nginx.prod.conf sets up proxy host for the sub-domains, www to non-www redirection and http to https redirection.
+- uncomment `#- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf` in the `docker-compose.prod.yaml` file. This maps nginx.prod.conf file on NPM.
+```
+volumes:
+  - data:/data
+  - letsencrypt:/etc/letsencrypt
+#-./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf
+```
+- nginx.prod.conf sets up proxy host for the sub-domains, **www to non-www redirection** and **http to https redirection**.
 - restart the application
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  docker-compose -f docker-compose.prod.yml up -d
   ```
 - **Verify the services are running and all path are accessible**:
    - **FastAPI Backend**: hello.cloudopsdomain.online/api
@@ -167,11 +166,77 @@ This section sets up the full stack application in production, configures domain
    - **Adminer**: db.hello.cloudopsdomain.online
    - **Nginx Proxy Manager**: proxy.hello.cloudopsdomain.online
 
-- test http to https redirection and www to non-www redirection is working
+- test http to https redirection and www to non-www redirection are working
   - www.hello.cloudopsdomain.online
   - https://www.hello.cloudopsdomain.online
   - http://www.hello.cloudopsdomain.online
 
-## Production Service Details (docker-compose.dev.yml)
+## Production Service Details (docker-compose.prod.yml)
+
+### Services
+
+- **nginx-proxy**: Manages the proxying of traffic between different services.
+  - Image: `jc21/nginx-proxy-manager:2.10.4`
+  - Ports: `80:80`, `443:443`, `8090:81`
+  - Environment:
+    - `DB_SQLITE_FILE`: Path to the SQLite database file.
+  - Volumes:
+    - `data`: Persistent storage for Nginx Proxy Manager data.
+    - `letsencrypt`: Persistent storage for Let's Encrypt certificates.
+    - `./nginx/nginx.prod.conf`: config for proxy manager
+  - Depends on: `frontend`, `backend`, `db`, `adminer`
+  - Networks: `frontend-network`, `backend-network`, `db-network`
+
+- **frontend**: The frontend service built from a custom Dockerfile.
+  - Build context: `./frontend`
+  - Dockerfile: `Dockerfile.prod`
+  - Environment file: `frontend/.env.prod`
+  - Depends on: `backend`
+  - Networks: `frontend-network`, `backend-network`
+
+- **backend**: The backend service built from a custom Dockerfile.
+  - Build context: `./backend`
+  - Dockerfile: `Dockerfile.prod`
+  - Environment file: `backend/.env.prod`
+  - Environment:
+    - `DATABASE_URL`: Connection string for the PostgreSQL database.
+  - Depends on: `db`
+  - Networks: `backend-network`, `db-network`
+
+- **db**: PostgreSQL database service.
+  - Image: `postgres:13`
+  - Volumes:
+    - `postgres_data`: Persistent storage for PostgreSQL data.
+  - Environment:
+    - `POSTGRES_DB`: Database name.
+    - `POSTGRES_USER`: Database user.
+    - `POSTGRES_PASSWORD`: Database password.
+  - Ports: `5432`
+  - Networks: `db-network`
+
+- **adminer**: Database management tool.
+  - Image: `adminer`
+  - Ports: `8080:8080`
+  - Environment:
+    - `ADMINER_DEFAULT_SERVER`: Default database server.
+  - Networks: `db-network`
+
+### Networks
+
+- `frontend-network`: Network for frontend communication.
+- `backend-network`: Network for backend communication.
+- `db-network`: Network for database communication.
+
+### Volumes
+
+- `postgres_data`: Persistent storage for PostgreSQL.
+- `data`: Persistent storage for Nginx Proxy Manager.
+- `letsencrypt`: Persistent storage for Let's Encrypt certificates.
+
+### Environment Files
+
+- **frontend/.env.prod**: Contains production environment variables for the frontend service.
+- **backend/.env.prod**: Contains production environment variables for the backend service.
+
 
 
