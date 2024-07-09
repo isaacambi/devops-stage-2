@@ -152,6 +152,7 @@ This section sets up the full stack application in production, configures domain
   ```
   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
   ```
+## final setup of application
 - uncomment `#- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf` in the docker-compose.prod.yaml file. This maps nginx.prod.conf file on NPM.
 - nginx.prod.conf sets up proxy host for the sub-domains, wwww to non-wwww redirection and http to https redirection.
 - restart the application
