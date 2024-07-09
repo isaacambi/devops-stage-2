@@ -123,13 +123,13 @@ This section sets up the full stack application in production, configures domain
 - replace the subdomain in nginx/nginx.conf with your subdomain in all required lines.
 - This example used **hello.cloudopsdomain.online, db.hello.cloudopsdomain.online, proxy.hello.cloudopsdomain.online**
 
-## the initial setup of application 
-- clone the application
+## Initial setup 
+- clone the project
   ```sh
    git clone https://github.com/DrInTech22/devops-stage-2.git
    cd devops-stage-2
    ```
-- run the application
+- run the project
   ```sh
   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
   ```
@@ -150,9 +150,9 @@ This section sets up the full stack application in production, configures domain
   - **proxy.hello.cloudopsdomain.online**
 - stop the applications
   ```
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
   ```
-## final setup of application
+## Final setup
 - uncomment `#- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf` in the docker-compose.prod.yaml file. This maps nginx.prod.conf file on NPM.
 - nginx.prod.conf sets up proxy host for the sub-domains, www to non-www redirection and http to https redirection.
 - restart the application
@@ -172,6 +172,6 @@ This section sets up the full stack application in production, configures domain
   - https://www.hello.cloudopsdomain.online
   - http://www.hello.cloudopsdomain.online
 
-
+## Production Service Details (docker-compose.dev.yml)
 
 
