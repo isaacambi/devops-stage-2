@@ -41,11 +41,11 @@ This repository contains a full-stack application setup using Docker Compose. Th
 2. **Build and start the services**:
 
    ```sh
-   docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
    ```
    for older version of docker compose, run:
    ```sh
-   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+   docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
    ```   
 
 3. **Verify the services are running and all path are accessible**:
@@ -131,7 +131,7 @@ This section sets up the full stack application in production, configures domain
    ```
 - run the application
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
   ```
 - access the NPM on your browser using your public-ip
   ```sh
@@ -150,14 +150,14 @@ This section sets up the full stack application in production, configures domain
   - **proxy.hello.cloudopsdomain.online**
 - stop the applications
   ```
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
   ```
 ## final setup of application
 - uncomment `#- ./nginx/nginx.prod.conf:/data/nginx/custom/http_top.conf` in the docker-compose.prod.yaml file. This maps nginx.prod.conf file on NPM.
 - nginx.prod.conf sets up proxy host for the sub-domains, www to non-www redirection and http to https redirection.
 - restart the application
   ```sh
-  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
   ```
 - **Verify the services are running and all path are accessible**:
    - **FastAPI Backend**: hello.cloudopsdomain.online/api
