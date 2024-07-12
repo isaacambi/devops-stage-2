@@ -14,12 +14,11 @@ services:
       - frontend
       - backend
       - db
-      - adminer
-
+      - adminer  
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -30,7 +29,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "5173:5173"
     env_file:
@@ -51,10 +50,7 @@ services:
     image: adminer
     ports:
       - "8080:8080"
-
 volumes:
   postgres_data:
   data:
   letsencrypt:
-
-
