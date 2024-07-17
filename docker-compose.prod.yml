@@ -44,8 +44,6 @@ services:
       - backend/.env.prod
     ports:
       - "8000"
-    environment:
-      DATABASE_URL: postgres://app:changethis123@db:5432/app
     networks:
       - backend-network
       - db-network
