@@ -32,14 +32,14 @@ jobs:
         run: |
           wget -qO- https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip -O /tmp/sonar-scanner.zip
           unzip /tmp/sonar-scanner.zip -d /tmp
-          export PATH=$PATH:/tmp/sonar-scanner-5.0.1.3006-linux/bin
+          echo "/tmp/sonar-scanner-5.0.1.3006-linux/bin" >> $GITHUB_PATH
 
       # SonarQube Scan
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          /tmp/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
+          sonar-scanner \
             -Dsonar.projectKey=frontend \
             -Dsonar.sources=./frontend \
             -Dsonar.host.url=http://54.167.73.42:9000 \
