@@ -16,10 +16,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Install unzip
+      - name: Install unzip
+        run: sudo apt-get install -y unzip
+
       # Install SonarScanner
       - name: Install SonarScanner
         run: |
-          wget -qO- https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip | bsdtar -xvf- -C /tmp
+          wget -qO- https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip -O /tmp/sonar-scanner.zip
+          unzip /tmp/sonar-scanner.zip -d /tmp
           export PATH=$PATH:/tmp/sonar-scanner-4.6.2.2472-linux/bin
 
       # SonarQube Scan
@@ -44,33 +49,4 @@ jobs:
 
       # Log in to DockerHub using the access token
       - name: Log in to DockerHub with Token
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      # Build Docker image
-      - name: Build Docker image
-        run: |
-          docker build -t frontend ./frontend
-
-      # Log in to AWS ECR
-      - name: Log in to AWS ECR
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          aws ecr get-login-password --region $AWS_REGION | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-
-      # Tag Docker image
-      - name: Tag Docker image
-        run: |
-          IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
-          docker tag frontend $IMAGE_URI
-
-      # Trivy scan Docker image
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-       
+        uses: docker
