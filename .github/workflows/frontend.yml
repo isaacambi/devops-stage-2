@@ -16,23 +16,30 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Set up Java 17
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
       # Install unzip
       - name: Install unzip
         run: sudo apt-get install -y unzip
 
-      # Install SonarScanner
+      # Install SonarScanner version 5 and above
       - name: Install SonarScanner
         run: |
-          wget -qO- https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip -O /tmp/sonar-scanner.zip
+          wget -qO- https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip -O /tmp/sonar-scanner.zip
           unzip /tmp/sonar-scanner.zip -d /tmp
-          export PATH=$PATH:/tmp/sonar-scanner-4.6.2.2472-linux/bin
+          export PATH=$PATH:/tmp/sonar-scanner-5.0.1.3006-linux/bin
 
       # SonarQube Scan
       - name: SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          /tmp/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner \
+          /tmp/sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner \
             -Dsonar.projectKey=frontend \
             -Dsonar.organization=my_org \
             -Dsonar.sources=./frontend \
@@ -76,12 +83,4 @@ jobs:
           docker tag frontend $IMAGE_URI
 
       # Trivy scan Docker image
-      - name: Scan Docker image with Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: $IMAGE_URI
-
-      # Push Docker image to ECR
-      - name: Push Docker image to AWS ECR
-        run: |
-          docker push $IMAGE_URI
+      - name: Scan Docker
