@@ -53,6 +53,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # Install AWS CLI
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get install -y awscli
+
       # Log in to DockerHub using the access token
       - name: Log in to DockerHub with Token
         uses: docker/login-action@v2
@@ -87,7 +92,8 @@ jobs:
         with:
           image-ref: $IMAGE_URI
 
-      # Push Docker image to ECR
+      # Push Docker image to AWS ECR
       - name: Push Docker image to AWS ECR
         run: |
+          IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
           docker push $IMAGE_URI
