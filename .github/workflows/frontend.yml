@@ -48,6 +48,9 @@ jobs:
   docker_build_scan_push:
     needs: sonarcloud_scan
     runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
     steps:
       # Checkout the repository
       - name: Checkout repository
@@ -86,13 +89,16 @@ jobs:
       - name: Tag Docker image
         run: |
           IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
+          echo "Image URI is: $IMAGE_URI"  # Debugging: Print IMAGE_URI value
           docker tag frontend $IMAGE_URI
 
       # Trivy scan Docker image for vulnerabilities
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: $IMAGE_URI
+          image-ref: ${{ secrets.ECR_REPOSITORY }}:latest  # Explicitly pass the image reference
+        env:
+          IMAGE_URI: ${{ secrets.ECR_REPOSITORY }}:latest  # Ensure IMAGE_URI is available as env variable
 
       # Push Docker image to AWS ECR
       - name: Push Docker image to AWS ECR
