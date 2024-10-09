@@ -87,10 +87,12 @@ jobs:
 
       # Tag Docker image with the correct ECR repository URI
       - name: Tag Docker image
+        id: tag-image
         run: |
           IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
           echo "Image URI is: $IMAGE_URI"  # Debugging: Print IMAGE_URI value
           docker tag frontend $IMAGE_URI
+          echo "IMAGE_URI=${IMAGE_URI}" >> $GITHUB_ENV  # Set IMAGE_URI for later steps
 
       # Trivy scan Docker image for vulnerabilities
       - name: Scan Docker image with Trivy
@@ -103,4 +105,5 @@ jobs:
       # Push Docker image to AWS ECR
       - name: Push Docker image to AWS ECR
         run: |
-          docker push $IMAGE_URI
+          echo "Pushing Docker image to AWS ECR..."
+          docker push ${{ env.IMAGE_URI }}  # Use the IMAGE_URI from the environment variable
