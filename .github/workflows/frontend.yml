@@ -1,4 +1,4 @@
-name: CI/CD Pipeline.
+name: CI/CD Pipeline
 
 on:
   push:
@@ -42,7 +42,7 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=frontend \
             -Dsonar.sources=./frontend \
-            -Dsonar.host.url=http://54.167.73.42:9000 \
+            -Dsonar.host.url=http://3.95.39.156:9000 \
             -Dsonar.login=$SONAR_TOKEN
 
   docker_build_scan_push:
@@ -53,12 +53,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Install AWS CLI
+      # Install AWS CLI (if needed for additional AWS commands later)
       - name: Install AWS CLI
-        run: |
-          sudo apt-get install -y awscli
+        run: sudo apt-get install -y awscli
 
-      # Log in to DockerHub using the access token
+      # Configure AWS credentials using GitHub secrets
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # Log in to DockerHub with Token
       - name: Log in to DockerHub with Token
         uses: docker/login-action@v2
         with:
@@ -70,23 +82,13 @@ jobs:
         run: |
           docker build -t frontend ./frontend
 
-      # Log in to AWS ECR
-      - name: Log in to AWS ECR
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: |
-          aws ecr get-login-password --region $AWS_REGION | \
-          docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY }}
-
-      # Tag Docker image
+      # Tag Docker image with the correct ECR repository URI
       - name: Tag Docker image
         run: |
           IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
           docker tag frontend $IMAGE_URI
 
-      # Trivy scan Docker image
+      # Trivy scan Docker image for vulnerabilities
       - name: Scan Docker image with Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -95,5 +97,4 @@ jobs:
       # Push Docker image to AWS ECR
       - name: Push Docker image to AWS ECR
         run: |
-          IMAGE_URI=${{ secrets.ECR_REPOSITORY }}:latest
           docker push $IMAGE_URI
