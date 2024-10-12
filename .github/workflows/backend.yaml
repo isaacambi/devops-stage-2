@@ -9,7 +9,8 @@ on:
   pull_request:
     branches:
       - main
-
+    paths-ignore:
+      - 'frontend.yml'
 jobs:
   sonarcloud_scan:
     runs-on: ubuntu-latest
