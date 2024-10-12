@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - './.github/workflows/backend.yaml'
   pull_request:
     branches:
       - main
